@@ -11,7 +11,7 @@ RUN apk add --no-cache \
     libjpeg-turbo-dev \
     libwebp-dev \
     freetype-dev \
-    linux-headers
+    linux-headers \
     zip \
     unzip \
     git
