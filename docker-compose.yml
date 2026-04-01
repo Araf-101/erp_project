@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   backend:
     build:
@@ -12,18 +10,23 @@ services:
     environment:
       - APP_ENV=production
       - APP_DEBUG=false
-      - APP_KEY=base64:your_app_key_here
+      - APP_URL=http://localhost:8000
+      - APP_KEY=base64:Q1m5j35HdvfEYGgJkUOl6b0M0qQJ7zgS7w3lB3R3NZo=
       - DB_CONNECTION=mysql
       - DB_HOST=db
       - DB_PORT=3306
       - DB_DATABASE=erp_db
       - DB_USERNAME=laravel
       - DB_PASSWORD=secret
+      - SESSION_DRIVER=file
+      - CACHE_STORE=file
+      - QUEUE_CONNECTION=sync
     volumes:
       - ./backend/storage:/var/www/html/storage
       - ./backend/bootstrap/cache:/var/www/html/bootstrap/cache
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   frontend:
     build:
@@ -49,6 +52,12 @@ services:
       - db_data:/var/lib/mysql
     ports:
       - "3307:3306" # Host port 3307 to avoid conflict
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
   # ==================== Lightweight DB Admin ====================
   adminer:
     image: adminer:latest
@@ -60,6 +69,7 @@ services:
       ADMINER_DEFAULT_SERVER: db # Auto-connect to your db service
       ADMINER_DEFAULT_DB: erp_db
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 volumes:
   db_data:
