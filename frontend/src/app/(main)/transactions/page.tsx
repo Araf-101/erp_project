@@ -1,0 +1,152 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import { apiFetch, unwrapList } from "@/lib/api";
+import type { Transaction } from "@/types/models";
+
+export default function TransactionsPage() {
+  const [rows, setRows] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [type, setType] = useState<"income" | "expense">("income");
+  const [amount, setAmount] = useState("");
+  const [description, setDescription] = useState("");
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const json = await apiFetch<unknown>("/api/transactions");
+      setRows(unwrapList<Transaction>(json));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to load transactions");
+      setRows([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  async function add(e: React.FormEvent) {
+    e.preventDefault();
+    const n = Number(amount);
+    if (!Number.isFinite(n) || n <= 0) {
+      toast.error("Amount must be a positive number");
+      return;
+    }
+
+    try {
+      await apiFetch("/api/transactions", {
+        method: "POST",
+        body: JSON.stringify({
+          type,
+          amount: n,
+          description: description.trim() || null,
+        }),
+      });
+      toast.success("Transaction recorded");
+      setAmount("");
+      setDescription("");
+      await load();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Save failed");
+    }
+  }
+
+  return (
+    <div>
+      <h2 className="text-xl font-semibold text-slate-900">Transactions</h2>
+      <p className="mt-1 text-sm text-slate-600">Income and expense ledger.</p>
+
+      <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_minmax(260px,360px)]">
+        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-slate-50 text-xs font-semibold uppercase text-slate-500">
+              <tr>
+                <th className="px-4 py-3">Type</th>
+                <th className="px-4 py-3">Amount</th>
+                <th className="px-4 py-3">Description</th>
+                <th className="px-4 py-3">Date</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {loading ? (
+                <tr>
+                  <td colSpan={4} className="px-4 py-8 text-center text-slate-500">
+                    Loading…
+                  </td>
+                </tr>
+              ) : rows.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-4 py-8 text-center text-slate-500">
+                    No transactions yet.
+                  </td>
+                </tr>
+              ) : (
+                rows.map((r) => (
+                  <tr key={r.id} className="hover:bg-slate-50/80">
+                    <td className="px-4 py-3 capitalize text-slate-900">{r.type}</td>
+                    <td className="px-4 py-3 font-medium text-slate-900">
+                      {String(r.amount)}
+                    </td>
+                    <td className="px-4 py-3 text-slate-600">{r.description ?? "—"}</td>
+                    <td className="px-4 py-3 text-slate-600">
+                      {r.created_at ? new Date(r.created_at).toLocaleString() : "—"}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="h-fit rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h3 className="font-semibold text-slate-900">Add entry</h3>
+          <form onSubmit={add} className="mt-4 flex flex-col gap-3">
+            <div>
+              <label className="text-xs font-medium text-slate-600">Type</label>
+              <select
+                value={type}
+                onChange={(e) =>
+                  setType(e.target.value as "income" | "expense")
+                }
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              >
+                <option value="income">Income</option>
+                <option value="expense">Expense</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-slate-600">Amount *</label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-slate-600">Description</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={3}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              />
+            </div>
+            <button
+              type="submit"
+              className="mt-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+            >
+              Save
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}

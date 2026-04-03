@@ -11,6 +11,7 @@ RUN apk add --no-cache \
     libjpeg-turbo-dev \
     libwebp-dev \
     freetype-dev \
+    postgresql-dev \
     linux-headers \
     zip \
     unzip \
@@ -19,7 +20,7 @@ RUN apk add --no-cache \
 # Install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install -j$(nproc) \
-        pdo_mysql \
+        pdo_pgsql \
         gd \
         bcmath \
         opcache \
@@ -48,7 +49,9 @@ RUN chown -R www-data:www-data /var/www/html \
 # Copy Nginx and Supervisor configs
 COPY backend/docker/nginx.conf /etc/nginx/http.d/default.conf
 COPY backend/docker/supervisord.conf /etc/supervisord.conf
+COPY backend/docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 EXPOSE 80
 
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

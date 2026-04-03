@@ -1,93 +1,64 @@
 # ERP Project
 
-This repository is a full-stack starter for an ERP application. It currently combines a React frontend, a Laravel backend, and a MySQL database, with Docker support for running the full stack together.
-
-The application is still at a scaffold stage:
-
-- The frontend is a Vite + React starter UI in `frontend/`
-- The backend is a Laravel 13 application in `backend/`
-- Docker Compose wires the frontend, backend, MySQL, and Adminer together
+Full-stack ERP starter: **Next.js** frontend, **Laravel 13** REST API, **PostgreSQL**, and Docker Compose.
 
 ## Stack
 
-- Frontend: React 19, Vite 8, ESLint 9
-- Backend: PHP 8.3, Laravel 13
-- Database: MySQL 8
-- Containers: Docker, Docker Compose, Nginx, Supervisor
+- Frontend: Next.js (App Router), TypeScript, Tailwind CSS
+- Backend: PHP 8.4 (Dockerfile) / PHP 8.3+ locally, Laravel 13, Laravel Sanctum (Bearer API tokens)
+- Database: PostgreSQL 16
+- Containers: Docker Compose, Nginx + PHP-FPM + Supervisor (backend), Node standalone (frontend)
 
-## Repository Structure
+## Repository structure
 
 ```text
 erp_project/
-├── frontend/          # React client
-├── backend/           # Laravel API / server app
-├── docker-compose.yml # Full stack container setup
+├── frontend/          # Next.js client
+├── backend/           # Laravel API
+├── docker-compose.yml
 └── README.md
 ```
 
-## Services and Ports
+## Services and ports (Docker Compose)
 
-When started with Docker Compose, the following services are exposed:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000 (routes under `/api/*`)
+- Adminer: http://localhost:8080 (use system **PostgreSQL**, server `db`, DB `erp_db`, user `laravel`, password `secret`)
+- PostgreSQL: `localhost:5433` (maps to port `5432` inside Docker; avoids clashing with a local Postgres install)
 
-- Frontend: `http://localhost:3000`
-- Backend: `http://localhost:8000`
-- Adminer: `http://localhost:8080`
-- MySQL: `localhost:3307`
-
-Default database credentials from `docker-compose.yml`:
-
-- Database: `erp_db`
-- Username: `laravel`
-- Password: `secret`
-- Root password: `root`
-
-## Prerequisites
-
-Choose one of the following workflows.
-
-### Docker workflow
-
-- Docker
-- Docker Compose
-
-### Local development workflow
-
-- Node.js 20+
-- npm
-- PHP 8.3+
-- Composer
-- MySQL 8
-
-## Quick Start With Docker
-
-Start the full stack:
+## Quick start (Docker)
 
 ```bash
 docker compose up --build
 ```
 
-Run in detached mode:
+On first run the backend container runs `php artisan migrate --force`. Optional demo admin user:
 
 ```bash
-docker compose up --build -d
+docker compose exec backend php artisan db:seed --force
 ```
 
-Stop the services:
+**Seeded login:** `admin@erp.local` / `password` (change in production).
 
-```bash
-docker compose down
-```
+You can also **register** via `POST /api/register` or sign up from the Next.js app if you add a register page.
 
-This starts:
+## API (summary)
 
-- `frontend`: production React build served by Nginx
-- `backend`: Laravel served through Nginx + PHP-FPM
-- `db`: MySQL 8
-- `adminer`: lightweight database UI
+Public:
 
-## Local Development
+- `POST /api/register` — `{ name, email, password }` → `{ token, user }`
+- `POST /api/login` — `{ email, password }` → `{ token, user }`
 
-### 1. Backend setup
+Authenticated (`Authorization: Bearer <token>`):
+
+- `GET /api/user`
+- Customers / products: `GET|POST|GET{id}|PUT|DELETE /api/customers`, `/api/products`
+- Orders: `GET|POST /api/orders`, `GET /api/orders/{id}` (POST body: `customer_id`, `items: [{ product_id, quantity }]`, optional `status`)
+- Transactions: `GET|POST /api/transactions`
+
+## Local development (without Docker)
+
+### Backend
 
 ```bash
 cd backend
@@ -96,68 +67,26 @@ cp .env.example .env
 php artisan key:generate
 ```
 
-Update `.env` with your local database settings, then run:
+Ensure PostgreSQL matches `.env`, then:
 
 ```bash
 php artisan migrate
+php artisan db:seed   # optional admin user
 php artisan serve
 ```
-
-The Laravel app will be available at `http://127.0.0.1:8000`.
-
-### 2. Frontend setup
-
-In a separate terminal:
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-The Vite dev server will be available at `http://localhost:5173`.
-
-## Useful Commands
 
 ### Frontend
 
 ```bash
 cd frontend
+npm install
+cp .env.example .env.local
+# set NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000
 npm run dev
-npm run build
-npm run preview
-npm run lint
 ```
 
-### Backend
+Default dev server: http://localhost:3000
 
-```bash
-cd backend
-composer install
-php artisan serve
-php artisan migrate
-php artisan test
-```
+## CORS
 
-Laravel also includes a convenience script for local development:
-
-```bash
-cd backend
-composer run dev
-```
-
-## Current State
-
-This repository is not yet a complete ERP system. At the moment it contains:
-
-- A starter React UI
-- A starter Laravel application with default routes
-- Containerized infrastructure for frontend, backend, database, and DB admin access
-
-If you plan to grow this into a production ERP, the next steps are typically:
-
-- Define business modules and domain models
-- Build API endpoints in Laravel
-- Connect the React app to backend APIs
-- Add authentication, authorization, and role management
-- Add test coverage and deployment configuration
+`backend/config/cors.php` allows `http://localhost:3000` and `http://127.0.0.1:3000` for the SPA.

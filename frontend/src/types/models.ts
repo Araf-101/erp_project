@@ -1,0 +1,33 @@
+export type Customer = {
+  id: number;
+  name: string;
+  phone?: string | null;
+  email?: string | null;
+  address?: string | null;
+  created_at?: string;
+};
+
+export type Product = {
+  id: number;
+  name: string;
+  price: number | string;
+  stock: number;
+  created_at?: string;
+};
+
+export type Order = {
+  id: number;
+  customer_id?: number | null;
+  user_id?: number | null;
+  total_amount: number | string;
+  status?: string | null;
+  created_at?: string;
+};
+
+export type Transaction = {
+  id: number;
+  type: "income" | "expense" | string;
+  amount: number | string;
+  description?: string | null;
+  created_at?: string;
+};

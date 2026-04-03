@@ -12,9 +12,9 @@ services:
       - APP_DEBUG=false
       - APP_URL=http://localhost:8000
       - APP_KEY=base64:Q1m5j35HdvfEYGgJkUOl6b0M0qQJ7zgS7w3lB3R3NZo=
-      - DB_CONNECTION=mysql
+      - DB_CONNECTION=pgsql
       - DB_HOST=db
-      - DB_PORT=3306
+      - DB_PORT=5432
       - DB_DATABASE=erp_db
       - DB_USERNAME=laravel
       - DB_PASSWORD=secret
@@ -32,44 +32,48 @@ services:
     build:
       context: .
       dockerfile: frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
     container_name: erp_frontend
     restart: unless-stopped
     ports:
-      - "3000:80"
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
     depends_on:
       - backend
 
   db:
-    image: mysql:8.0
+    image: postgres:16-alpine
     container_name: erp_db
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: erp_db
-      MYSQL_USER: laravel
-      MYSQL_PASSWORD: secret
-      MYSQL_ROOT_PASSWORD: root
+      POSTGRES_DB: erp_db
+      POSTGRES_USER: laravel
+      POSTGRES_PASSWORD: secret
     volumes:
-      - db_data:/var/lib/mysql
+      - db_data:/var/lib/postgresql/data
     ports:
-      - "3307:3306" # Host port 3307 to avoid conflict
+      - "5433:5432"
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      test: ["CMD-SHELL", "pg_isready -U laravel -d erp_db"]
       interval: 10s
       timeout: 5s
       retries: 10
-      start_period: 20s
-  # ==================== Lightweight DB Admin ====================
+      start_period: 15s
+
   adminer:
     image: adminer:latest
     container_name: erp_adminer
     restart: unless-stopped
     ports:
-      - "8080:8080" # Access at http://localhost:8080
+      - "8080:8080"
     environment:
-      ADMINER_DEFAULT_SERVER: db # Auto-connect to your db service
+      ADMINER_DEFAULT_SERVER: db
       ADMINER_DEFAULT_DB: erp_db
     depends_on:
       db:
         condition: service_healthy
+
 volumes:
   db_data:

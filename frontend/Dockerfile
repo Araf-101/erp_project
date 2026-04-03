@@ -1,32 +1,33 @@
-# frontend/Dockerfile
+# frontend/Dockerfile — Next.js production (standalone)
 
-FROM node:20-alpine AS builder
-
+FROM node:20-alpine AS deps
 WORKDIR /app
-
-# Copy package files first
-COPY frontend/package*.json ./
-
-# Install dependencies
+COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
 
-# Copy all frontend files
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY frontend/ .
-
-# Build Next.js app for production
+ENV NEXT_TELEMETRY_DISABLED=1
+ARG NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
 RUN npm run build
 
-# Production stage (serve with Nginx)
-FROM nginx:alpine
+FROM node:20-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
 
-# Copy built files to Nginx root
-COPY --from=builder /app/.next /usr/share/nginx/html/.next
-COPY --from=builder /app/public /usr/share/nginx/html
-COPY --from=builder /app/package.json /usr/share/nginx/html
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
 
-# If using a custom nginx config, uncomment and set path
-# COPY frontend/docker/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]
+USER nextjs
+EXPOSE 3000
+CMD ["node", "server.js"]
