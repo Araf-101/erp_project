@@ -26,7 +26,7 @@ COPY --from=composer:2.8 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-COPY backend/composer.json backend/composer.lock ./
+COPY backend/ .
 RUN composer install --no-interaction --prefer-dist
 
 COPY backend/docker/dev-entrypoint.sh /usr/local/bin/dev-entrypoint.sh

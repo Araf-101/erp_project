@@ -7,6 +7,8 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\TransactionController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/ping', fn () => response()->json(['status' => 'ok', 'message' => 'API is reachable']));
+
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
