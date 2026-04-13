@@ -125,16 +125,23 @@ export function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
 
           <div className="relative rounded-[28px] border border-white/10 bg-white/5 p-5 backdrop-blur">
             {user ? (
-              <div className="mb-4 flex items-center gap-3">
+              <Link
+                href="/profile"
+                onClick={onClose}
+                className="mb-4 flex items-center gap-3 rounded-2xl p-2 transition-colors hover:bg-white/10"
+              >
                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-cyan-300">
                   <Icon icon="solar:user-circle-bold-duotone" className="h-6 w-6" />
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-white">{user.name}</p>
-                  <p className="text-xs uppercase tracking-[0.18em] text-[var(--text-sidebar-muted)]">{user.role}</p>
+                  <p className="text-xs uppercase tracking-[0.18em] text-[var(--text-sidebar-muted)]">
+                    {user.role}
+                  </p>
                 </div>
-              </div>
+              </Link>
             ) : null}
+
             <button
               type="button"
               onClick={logout}

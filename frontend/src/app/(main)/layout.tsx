@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { Icon } from "@iconify/react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import { Sidebar } from "@/components/Sidebar";
@@ -48,7 +49,10 @@ export default function MainLayout({
               
               <div className="flex items-center gap-4">
                 <ThemeToggle />
-                <div className="flex items-center gap-3 rounded-2xl border border-[var(--border-main)] bg-[var(--bg-card)] px-4 py-2 shadow-sm">
+                <Link
+                  href="/profile"
+                  className="flex items-center gap-3 rounded-2xl border border-[var(--border-main)] bg-[var(--bg-card)] px-4 py-2 shadow-sm transition-colors hover:bg-[var(--bg-app)]"
+                >
                   <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-400">
                     <Icon icon="solar:shield-user-bold-duotone" className="h-5 w-5" />
                   </div>
@@ -58,7 +62,7 @@ export default function MainLayout({
                       {user?.role ?? "guest"}
                     </p>
                   </div>
-                </div>
+                </Link>
               </div>
             </div>
           </header>

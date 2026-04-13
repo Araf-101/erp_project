@@ -15,20 +15,23 @@ const mobileLinks: Record<
     { href: "/customers", label: "Users", icon: "solar:users-group-rounded-bold-duotone" },
     { href: "/products", label: "Stock", icon: "solar:box-bold-duotone" },
     { href: "/orders", label: "Orders", icon: "solar:cart-5-bold-duotone" },
-    { href: "/transactions", label: "Bills", icon: "solar:card-transfer-bold-duotone" },
+    { href: "/profile", label: "Profile", icon: "solar:user-circle-bold-duotone" },
   ],
   customer: [
     { href: "/dashboard", label: "Home", icon: "solar:widget-5-bold-duotone" },
     { href: "/products", label: "Products", icon: "solar:box-bold-duotone" },
     { href: "/orders", label: "Orders", icon: "solar:cart-5-bold-duotone" },
+    { href: "/profile", label: "Profile", icon: "solar:user-circle-bold-duotone" },
   ],
   employee: [
     { href: "/dashboard", label: "Home", icon: "solar:widget-5-bold-duotone" },
+    { href: "/profile", label: "Profile", icon: "solar:user-circle-bold-duotone" },
   ],
   vendor: [
     { href: "/dashboard", label: "Home", icon: "solar:widget-5-bold-duotone" },
     { href: "/products", label: "Products", icon: "solar:box-bold-duotone" },
     { href: "/orders", label: "Orders", icon: "solar:cart-5-bold-duotone" },
+    { href: "/profile", label: "Profile", icon: "solar:user-circle-bold-duotone" },
   ],
 };
 
